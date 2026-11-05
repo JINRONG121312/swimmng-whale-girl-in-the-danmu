@@ -249,4 +249,8 @@
   wire();
   ask();
   window.setInterval(function () { revive(); }, 1000);
+  /* 预览面板会把主世界定时器一起冻住，看门狗叫不醒；点击/按键是页面真在被用的证据，用它把循环接回来 */
+  ['pointerdown', 'keydown', 'focus'].forEach(function (evt) {
+    window.addEventListener(evt, function () { revive(); }, { passive: true });
+  });
 })();
