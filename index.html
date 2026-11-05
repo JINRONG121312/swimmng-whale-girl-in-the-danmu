@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>大型连续剧之鲸鱼娘在弹幕群中游泳</title>
+<meta name="description" content="弹幕不是飘在画面上的字，弹幕就是水。她游在弹幕里，因为有人在说话；没人说话，海就干了。零依赖单页，双击即玩。">
+<meta name="author" content="公冰蓝 / JINRONG121312 · oceanplay">
+<meta property="og:title" content="大型连续剧之鲸鱼娘在弹幕群中游泳">
+<meta property="og:description" content="发一条弹幕，就是往海里加一方水，也顺便成了她的晚饭。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 150'%3E%3Cellipse cx='112' cy='78' rx='72' ry='54' fill='%237cc4f2'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="src/ocean.css">
+</head>
+<body>
+
+<header class="head">
+  <p class="kicker">大型连续剧</p>
+  <h1>鲸鱼娘在<span class="hl">弹幕群</span>中游泳</h1>
+  <p class="meta">
+    <span class="badge" id="epBadge">第 1 集</span>
+    <span id="epTitle">本集：《她吃了三条弹幕》</span>
+    <span class="next" id="preview" hidden></span>
+  </p>
+</header>
+
+<div class="stage" id="stage">
+  <div class="whale is-swim" id="whale">
+    <svg class="rig" viewBox="0 0 200 190" role="img" aria-label="鲸鱼娘">
+      <defs>
+        <linearGradient id="gBody" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#c9edff"/><stop offset=".55" stop-color="#7cc4f2"/><stop offset="1" stop-color="#3f8fd8"/>
+        </linearGradient>
+        <linearGradient id="gFin" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#8ed2ff"/><stop offset="1" stop-color="#3f8fd8"/>
+        </linearGradient>
+      </defs>
+
+      <path class="p-dorsal" d="M86 46c1-21 7-32 14-32s13 11 14 32z" fill="#5aa9e6"/>
+
+      <g class="p-tail">
+        <path d="M100 150c-11 10-24 20-27 35 13-7 24-15 31-26z" fill="url(#gFin)"/>
+        <path d="M100 150c11 10 24 20 27 35-13-7-24-15-31-26z" fill="url(#gFin)" opacity=".92"/>
+      </g>
+
+      <ellipse class="p-body" cx="100" cy="96" rx="76" ry="62" fill="url(#gBody)" stroke="#17304b" stroke-width="2.5"/>
+      <ellipse class="p-belly" cx="100" cy="114" rx="52" ry="40" fill="#f6fcff" opacity=".95"/>
+
+      <g class="p-fin-l"><path d="M27 104c-16 7-23 21-19 35 12-13 24-21 36-23z" fill="#5aa9e6"/></g>
+      <g class="p-fin-r"><path d="M173 104c16 7 23 21 19 35-12-13-24-21-36-23z" fill="#5aa9e6"/></g>
+
+      <path class="p-ahoge" d="M100 42c-5-12 1-23 11-24-7 8-6 16-1 23z" fill="#7fc2f0"/>
+
+      <path class="p-band" d="M30 94C29 40 171 40 170 94" fill="none" stroke="#2c3e5c" stroke-width="6" stroke-linecap="round"/>
+      <g class="p-cup-l">
+        <rect x="18" y="78" width="21" height="33" rx="10.5" fill="#2c3e5c"/>
+        <rect x="21.5" y="83" width="14" height="23" rx="7" fill="#ffd166"/>
+      </g>
+      <g class="p-cup-r">
+        <rect x="161" y="78" width="21" height="33" rx="10.5" fill="#2c3e5c"/>
+        <rect x="164.5" y="83" width="14" height="23" rx="7" fill="#ffd166"/>
+      </g>
+      <path class="p-mic" d="M30 111c-3 13 2 22 12 25" fill="none" stroke="#2c3e5c" stroke-width="2.6" stroke-linecap="round"/>
+      <circle class="p-mic-tip" cx="46" cy="139" r="3.4" fill="#ffd166"/>
+
+      <g class="p-eye">
+        <g class="e-open">
+          <ellipse cx="76" cy="92" rx="7.6" ry="9.6" fill="#17304b"/>
+          <ellipse cx="124" cy="92" rx="7.6" ry="9.6" fill="#17304b"/>
+          <circle cx="79" cy="88.4" r="2.9" fill="#fff"/>
+          <circle cx="127" cy="88.4" r="2.9" fill="#fff"/>
+          <circle cx="73.2" cy="95.6" r="1.4" fill="#fff" opacity=".85"/>
+          <circle cx="121.2" cy="95.6" r="1.4" fill="#fff" opacity=".85"/>
+        </g>
+        <g class="e-happy">
+          <path d="M68 95c3-8 13-8 16 0" fill="none" stroke="#17304b" stroke-width="3.2" stroke-linecap="round"/>
+          <path d="M116 95c3-8 13-8 16 0" fill="none" stroke="#17304b" stroke-width="3.2" stroke-linecap="round"/>
+        </g>
+        <g class="e-flat">
+          <path d="M68 92h16" stroke="#17304b" stroke-width="3.4" stroke-linecap="round"/>
+          <path d="M116 92h16" stroke="#17304b" stroke-width="3.4" stroke-linecap="round"/>
+        </g>
+        <g class="e-tear">
+          <path d="M65 103c-3 7-5 11-2 13 3 2 7-1 7-5 0-3-3-5-5-8z" fill="#8ed2ff"/>
+          <path d="M135 103c3 7 5 11 2 13-3 2-7-1-7-5 0-3 3-5 5-8z" fill="#8ed2ff"/>
+        </g>
+      </g>
+
+      <ellipse class="p-blush" cx="56" cy="114" rx="9.5" ry="4.6" fill="#ffb3c7" opacity=".9"/>
+      <ellipse class="p-blush" cx="144" cy="114" rx="9.5" ry="4.6" fill="#ffb3c7" opacity=".9"/>
+
+      <path class="m-smile" d="M92 114c3 6 13 6 16 0" fill="none" stroke="#17304b" stroke-width="2.8" stroke-linecap="round"/>
+      <g class="m-open">
+        <path d="M100 108c-11 2-16 11-14 18 2 8 9 12 14 12s12-4 14-12c2-7-3-16-14-18z" fill="#17304b"/>
+        <ellipse cx="100" cy="130" rx="7.5" ry="4.2" fill="#ff8fa8"/>
+      </g>
+    </svg>
+    <p class="say" id="say" role="status" aria-live="polite"></p>
+  </div>
+</div>
+
+<aside class="card" id="card" aria-hidden="true"></aside>
+
+<section class="cue" id="cue" aria-live="polite"></section>
+
+<form class="send" id="sendForm">
+  <label class="f-nick">昵称<input id="nick" maxlength="12" autocomplete="off" placeholder="游客"></label>
+  <label class="f-text">内容<input id="text" maxlength="60" autocomplete="off" placeholder="发一条弹幕——它既是水，也可能是她的晚饭"></label>
+  <label class="f-style">风格
+    <select id="styleSel">
+      <option value="auto">随波逐流</option>
+      <option value="plain">一片纸</option>
+      <option value="bubble">对话气泡</option>
+      <option value="spark">高能</option>
+      <option value="torn">撕纸</option>
+    </select>
+  </label>
+  <button type="submit" class="go">扔进海里</button>
+</form>
+
+<div class="demo">
+  <button type="button" data-act="feed">投喂小鱼干</button>
+  <button type="button" data-act="refill">补水</button>
+  <button type="button" data-act="flood">高能 46 条</button>
+  <button type="button" data-act="drain">断供（看海退干）</button>
+  <button type="button" id="autoBtn" aria-pressed="true">弹幕自播：开</button>
+  <span class="note" id="restoreNote"></span>
+</div>
+
+<div class="corner">
+  <button type="button" id="pauseBtn" aria-pressed="false">暂停</button>
+  <div class="panel" id="panel">
+    <h2>现场遥测</h2>
+    <div class="tr" id="telemetry"></div>
+    <div class="tr-row"><b>她的状态</b><span class="flag" id="flag">正常</span></div>
+    <h2>弹幕字号</h2>
+    <div class="seg">
+      <button type="button" class="face-btn" data-face="compact">紧凑 12</button>
+      <button type="button" class="face-btn" data-face="std">标准 14</button>
+      <button type="button" class="face-btn" data-face="cozy">舒适 17</button>
+    </div>
+    <h2>她听得懂的词</h2>
+    <p class="lex">哈哈 / 233 · 救命 / 捞捞 · 小鱼干 / 投喂 · 加油 / 冲鸭 · 上岸 / 搁浅 · 离谱 / 绷不住<br><em>其余一律歪头。她只学了 6 组词。</em></p>
+    <p class="hint">空格 暂停 · P 面板 · N 输入 · Esc 退出输入<br>发出去的弹幕只存在你自己的浏览器里，没有服务器。</p>
+  </div>
+  <button type="button" class="round" id="panelBtn" aria-pressed="false" title="现场遥测">遥</button>
+</div>
+
+<noscript><p class="nojs">这个连续剧需要 JavaScript：海是由弹幕实时构成的，关掉脚本就没有海了。</p></noscript>
+
+<script src="src/sea.js"></script>
+<script src="src/whale.js"></script>
+<script src="src/drama.js"></script>
+<script src="src/app.js"></script>
+</body>
+</html>
