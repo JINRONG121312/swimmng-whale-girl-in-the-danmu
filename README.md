@@ -67,6 +67,7 @@ scripts/selfcheck.js    开发期自检：node scripts/selfcheck.js
 - **弹幕宽度用 `canvas.measureText` 度量**，所以换字体得同步改度量字体栈，否则会叠字。
 - **没有服务器**。你发出去的弹幕存在你自己的浏览器 `localStorage`（`wwd.danmu.v1`，上限 60 条），刷新后回放。昵称存在 `wwd.nick.v1`，字号/自播开关存在 `wwd.prefs.v1`。清掉浏览器数据，海就真的干了。
 - **单一主循环**：一个 `requestAnimationFrame` 驱动海、她、剧本三方，`dt` 封顶 0.05 秒；标签页回到前台时重置时基。
+- **循环不会死在第一帧**：后台标签页 / 还没显示的容器里开机时，首个 rAF 回调可能永不投递。1 秒一次的看门狗（后台照样走的定时器）和 `visibilitychange` 会把链条重新接上，`WWD.snapshot().revives` 是它救场的次数。
 - **可达性**：`prefers-reduced-motion` 下关摆动与弹簧（JS 同步关闭，减少动效不减少信息），`forced-colors` 下弹幕保留 1px 描边、水色退成 `Canvas`；弹幕层与片头遮罩一律 `pointer-events: none`；375px 窄屏只改三个 CSS 变量推布局。
 - 输入内容经过 HTML 转义，昵称与内容都有长度上限。
 

@@ -30,7 +30,8 @@
   var drama = window.WhaleDrama.create({ sea: sea, whale: whale, badge: $('epBadge'), title: $('epTitle'), cue: $('cue'), card: $('card'), preview: $('preview') });
 
   var ui = {
-    playing: true, autoplay: prefs.autoplay !== false, nextAt: 0, acc: 0, tickAcc: 0, sent: 0, paused: false, last: 0
+    playing: true, autoplay: prefs.autoplay !== false, nextAt: 0, acc: 0, tickAcc: 0, sent: 0, paused: false, last: 0,
+    frame: 0, beat: 0, revives: 0
   };
 
   /* ---------- 发送 ---------- */
@@ -149,7 +150,10 @@
       clearTimeout(t);
       t = setTimeout(function () { sea.resize(); whale.resize(); }, 140);
     });
-    document.addEventListener('visibilitychange', function () { ui.last = 0; });
+    document.addEventListener('visibilitychange', function () {
+      ui.last = 0;
+      if (!document.hidden) revive();
+    });
 
     restore();
     syncAuto();
@@ -176,9 +180,22 @@
     $('flag').textContent = sea.beached() ? '搁浅' : sea.drowned() ? '被淹没' : st.base === 'fat' ? '吃撑' : '正常';
   }
 
-  function loop(now) {
+  /* 后台标签页/未显示的容器里首个 rAF 可能永不投递，链条会断死在第一帧 → 用后台照样走的定时器当看门狗 */
+  function ask() { ui.frame = requestAnimationFrame(loop); }
+
+  function revive(force) {
     if (!ui.playing) return;
-    requestAnimationFrame(loop);
+    if (!force && window.performance.now() - ui.beat < 1200) return;
+    if (ui.frame) cancelAnimationFrame(ui.frame);
+    ui.revives++;
+    ui.last = 0;
+    ask();
+  }
+
+  function loop(now) {
+    ui.beat = now;
+    if (!ui.playing) return;
+    ask();
     if (ui.paused) { ui.last = 0; return; }
     if (!ui.last) ui.last = now;
     var dt = clamp((now - ui.last) / 1000, 0, 0.05);
@@ -213,6 +230,7 @@
         water: Math.round(sea.water() * 1000) / 1000, depth: Math.round(sea.depth()),
         live: sea.live(), lanes: sea.lanes(), beached: sea.beached(), drowned: sea.drowned(),
         whale: w, drama: d, sent: ui.sent, autoplay: ui.autoplay,
+        sinceFrame: Math.round(window.performance.now() - ui.beat), revives: ui.revives,
         seaTop: parseInt(getComputedStyle($('stage').querySelector('.sea')).getPropertyValue('--sea-top'), 10) || 0
       };
     },
@@ -225,9 +243,10 @@
       telemetry();
       return window.WWD.snapshot();
     },
-    start: function () { ui.playing = true; ui.last = 0; requestAnimationFrame(loop); }
+    start: function () { ui.playing = true; revive(true); }
   };
 
   wire();
-  requestAnimationFrame(loop);
+  ask();
+  window.setInterval(function () { revive(); }, 1000);
 })();
