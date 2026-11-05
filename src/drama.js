@@ -27,7 +27,7 @@
     var sea = opts.sea, whale = opts.whale;
 
     var d = {
-      ep: 1, t: 0, eaten: 0, selfEaten: 0, laughs: 0, saves: 0, freezes: 0,
+      ep: 1, t: 0, eaten: 0, selfEaten: 0, laughs: 0, saves: 0, freezes: 0, gifts: 0,
       beachN: 0, drownN: 0, dist: 0, title: null, cues: [], cardT: 0, lastNext: null
     };
     var prevPos = null;
@@ -78,6 +78,7 @@
       if (d.laughs || d.saves) out.push('有人笑了 ' + d.laughs + ' 次，喊了 ' + d.saves + ' 次救命');
       if (d.beachN) out.push('海干了 ' + d.beachN + ' 次，是她上岸的理由');
       if (d.drownN) out.push('她被弹幕淹没 ' + d.drownN + ' 次，只冒泡');
+      if (d.gifts) out.push('收到 ' + d.gifts + ' 件打赏，她当场吃掉了');
       out.push('在水里游过 ' + (d.dist / 100).toFixed(2) + ' 米，深度停在 ' + Math.round(sea.depth()) + ' px');
       return out.slice(-T.maxCue);
     }
@@ -85,7 +86,7 @@
     function roll(toNext) {
       var lines = recap();
       d.ep = toNext ? d.ep + 1 : d.ep;
-      d.t = 0; d.eaten = 0; d.selfEaten = 0; d.laughs = 0; d.saves = 0;
+      d.t = 0; d.eaten = 0; d.selfEaten = 0; d.laughs = 0; d.saves = 0; d.gifts = 0;
       d.beachN = 0; d.drownN = 0; d.dist = 0; d.title = null;
       renderBadge();
       if (toNext) {
@@ -108,6 +109,8 @@
     });
 
     whale.on('eat', function (item) {
+      /* 打赏由 gift 事件单独记账：混进来的话，「吞了几条弹幕」会虚高，本集标题还会变成《巧克力》 */
+      if (item.gift) return;
       d.eaten++;
       if (item.self) d.selfEaten++;
       if (!d.title && item.text) { d.title = cut(item.text, 12); renderTitle(); }
@@ -116,6 +119,12 @@
       if (p.a === 'belly') { d.laughs++; cue('有人说了「' + cut(p.text, 8) + '」，她翻了一下肚皮'); }
       if (p.a === 'rescue') { d.saves++; cue('她冲过去把「' + cut(p.text, 8) + '」顶出了水面'); }
       if (p.a === 'freeze') d.freezes++;
+    });
+    whale.on('gift', function (p) {
+      d.gifts++;
+      if (p.kind === 'heart') cue('她把爱心吞了下去。第 ' + p.lv + ' 层，尾巴立刻摆急了。');
+      if (p.kind === 'choco') cue('她把巧克力吞了下去。墨镜戴上，第 ' + p.lv + ' 层。');
+      if (p.kind === 'fish') cue('她把小鱼干吞了下去——水其实是打赏那一刻涨的。');
     });
 
     function step(dt) {
@@ -144,7 +153,7 @@
       roll: function () { roll(true); },
       forceCard: function () { showCard(OPEN, 4.4); },
       state: function () {
-        return { ep: d.ep, inEp: Math.round(d.t), eaten: d.eaten, selfEaten: d.selfEaten, laughs: d.laughs, saves: d.saves, title: d.title, cues: d.cues.slice(), meters: Math.round(d.dist / 100) };
+        return { ep: d.ep, inEp: Math.round(d.t), eaten: d.eaten, selfEaten: d.selfEaten, laughs: d.laughs, saves: d.saves, gifts: d.gifts, title: d.title, cues: d.cues.slice(), meters: Math.round(d.dist / 100) };
       },
       tune: T
     };

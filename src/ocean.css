@@ -18,8 +18,8 @@
   --dm-pad-x: 10px;
   --dm-opacity: .95;
   --whale-w: min(40vw, 232px);
-  --ui-h: 78px;          /* 发送条实高 */
-  --cue-lift: 38px;      /* 演示按钮那一行的高 */
+  --ui-h: 78px;          /* 发送条实高，app.js 量完会覆盖 */
+  --dock-h: 0px;         /* 打赏/演示那一叠的高度，同样是量出来的 */
   --stack: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
 }
 
@@ -58,6 +58,14 @@ body {
   padding: 1px 7px; border: 1px dashed var(--rose); border-radius: 3px;
   color: var(--rose); font-weight: 700;
 }
+.medal {
+  margin: 0; display: flex; align-items: center; gap: 6px;
+  padding: 2px 9px 2px 5px; border: 1px solid var(--ink); border-radius: 999px;
+  background: var(--paper); font-size: 11px;
+}
+.medal svg { width: 15px; height: 19px; flex: 0 0 auto; }
+.medal b { font-weight: 800; }
+.medal span { opacity: .68; }
 
 /* ── 海 ───────────────────────────────────────────────── */
 
@@ -113,7 +121,17 @@ body {
   transform: translate3d(var(--x, -300px), var(--y, 0px), 0) rotate(var(--rot, 0deg)) scale(var(--s, 1));
   will-change: transform;
   contain: layout style;
+  /* 海不吃点击，但单条字要吃：拖得动，才喂得了鱼 */
+  pointer-events: auto; cursor: grab; touch-action: none; -webkit-user-select: none; user-select: none;
 }
+.dm--held { z-index: 5; cursor: grabbing; border-color: var(--rose); box-shadow: 0 4px 14px rgba(23, 48, 75, .26); opacity: 1; }
+/* 打赏物品：没有纸片底，只有形状本身。尺寸必须和 sea.js 的 GIFT 表逐一对齐 */
+.dm--gift { padding: 0; border: 0; background: none; box-shadow: none; text-shadow: none; opacity: 1; }
+.dm--gift svg { display: block; width: 100%; height: 100%; }
+.dm--gift[data-gift="heart"] { width: 28px; height: 26px; }
+.dm--gift[data-gift="choco"] { width: 30px; height: 24px; }
+.dm--gift[data-gift="fish"] { width: 34px; height: 20px; }
+.dm--gift.dm--self { border: 0; }
 .dm-nick { font-weight: 800; opacity: .66; margin-right: .45em; }
 .dm--self { border-width: 2px; border-color: var(--rose); }
 
@@ -161,7 +179,16 @@ body {
 @keyframes swish { from { transform: rotate(-5deg); } to { transform: rotate(6deg); } }
 .whale.is-fat .p-tail { animation-duration: 2.1s; }
 .whale.is-eat .p-tail { animation-duration: .62s; }
-.whale.is-drown .p-tail, .whale.is-beach .p-tail { animation: none; }
+/* 淹没时她还在人群里往前拱，尾巴摆得比平时急；搁浅才是真不动 */
+.whale.is-drown .p-tail { animation-duration: .48s; }
+/* 爱心 buff：尾巴摆得越来越急，一眼看得出叠了几层。搁浅仍然不许动，所以排除 is-beach */
+.whale[data-run="1"]:not(.is-beach) .p-tail { animation-duration: .52s; }
+.whale[data-run="2"]:not(.is-beach) .p-tail { animation-duration: .4s; }
+.whale[data-run="3"]:not(.is-beach) .p-tail { animation-duration: .3s; }
+/* 巧克力 buff：墨镜只在叠到 1 层以上时才戴上 */
+.whale .p-shades { display: none; }
+.whale[data-cool="1"] .p-shades, .whale[data-cool="2"] .p-shades, .whale[data-cool="3"] .p-shades { display: block; }
+.whale.is-beach .p-tail { animation: none; }
 
 /* 表情：默认睁眼微笑，data-face 切换 */
 .whale .e-happy, .whale .e-flat, .whale .e-tear, .whale .m-open { display: none; }
@@ -202,6 +229,7 @@ body {
 .say.on { animation: saypop var(--say-ttl, 2.6s) ease forwards; }
 .say[data-kind="sos"] { border-color: var(--rose); color: var(--rose); }
 .say[data-kind="burp"] { border-color: var(--accent); }
+.say[data-kind="gift"] { border-color: var(--rose); background: #fff; box-shadow: 3px 3px 0 rgba(229, 73, 122, .28); }
 @keyframes saypop {
   0% { opacity: 0; transform: translate(-50%, 10px) scale(.86); }
   12% { opacity: 1; transform: translate(-50%, 0) scale(1); }
@@ -212,9 +240,8 @@ body {
 /* ── 剧情提要 ─────────────────────────────────────────── */
 
 .cue {
-  position: fixed; z-index: 40; left: 14px; bottom: calc(var(--ui-h) + var(--cue-lift));
   display: flex; flex-direction: column; gap: 2px;
-  max-width: min(54ch, 58vw); pointer-events: none;
+  max-width: min(54ch, 62vw); pointer-events: none;
 }
 .cue p {
   margin: 0; padding: 2px 8px; font-size: 12px; line-height: 1.5;
@@ -277,13 +304,30 @@ body {
 }
 .send .go:active { transform: translate(2px, 2px); box-shadow: none; }
 
-.demo {
-  position: fixed; z-index: 39; left: 14px; bottom: var(--ui-h);
-  display: flex; align-items: center; gap: 6px; flex-wrap: wrap; max-width: 62vw;
+/* 底部这一坨是一个整体：提要 + 一排按钮，都在 .dock 的正常流里。
+   以前两块各自 fixed，靠一个猜出来的高度错位，窗口一窄就上下重叠。 */
+.dock {
+  position: fixed; z-index: 39; left: 14px; right: 158px; bottom: var(--ui-h);
+  display: flex; flex-direction: column; align-items: flex-start; gap: 5px;
 }
+.demo { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .demo button { cursor: pointer; font-size: 12px; padding: 4px 9px; background: rgba(255, 253, 245, .9); }
 .demo button[aria-pressed="false"] { opacity: .5; }
 .demo .note { font-size: 11px; opacity: .6; }
+.demo .tag { font-size: 11px; font-weight: 800; letter-spacing: .1em; color: var(--wa-3); }
+.demo .sep { width: 1px; height: 18px; background: rgba(23, 48, 75, .22); margin: 0 2px; }
+.demo .gift {
+  display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
+  font: 12px/1.3 var(--stack); color: var(--ink);
+  padding: 2px 8px 2px 4px; border: 2px solid var(--ink); border-radius: 999px;
+  background: rgba(255, 253, 245, .92);
+}
+.demo .gift:active { transform: translateY(1px); }
+.demo .gift .g-ico { display: block; flex: 0 0 auto; }
+.demo .gift .g-ico svg { display: block; height: 18px; width: auto; }
+.demo .gift b { font-weight: 700; }
+.demo .gift .g-lv { font-style: normal; font-weight: 800; color: var(--rose); min-width: 1.7em; text-align: left; }
+.demo .gift.is-on { border-color: var(--rose); box-shadow: 0 0 0 2px rgba(229, 73, 122, .2); }
 
 .corner { position: fixed; z-index: 41; right: 14px; bottom: var(--ui-h); display: flex; align-items: center; gap: 6px; }
 .corner .round {
@@ -310,22 +354,57 @@ body {
 .lex { margin: 2px 0 0; font-size: 11px; line-height: 1.6; }
 .lex em { opacity: .62; font-style: normal; }
 .hint { margin: 8px 0 0; font-size: 11px; opacity: .58; line-height: 1.55; }
+.cert {
+  position: fixed; z-index: 42; right: 14px; bottom: calc(var(--ui-h) + 46px);
+  width: min(348px, calc(100vw - 28px)); max-height: min(64vh, 520px); overflow: auto;
+  padding: 13px 14px 11px; background: var(--paper); color: var(--ink);
+  border: 1.5px solid var(--ink); border-radius: 3px;
+  box-shadow: 4px 5px 0 rgba(20, 24, 31, .16);
+  font-size: 12px; line-height: 1.62;
+}
+.cert[hidden] { display: none; }
+.cert-x {
+  position: absolute; top: 4px; right: 6px; border: 0; background: none;
+  font: inherit; font-size: 17px; line-height: 1; cursor: pointer; color: var(--ink);
+}
+.cert-kicker { margin: 0; font-size: 10px; font-weight: 800; letter-spacing: .18em; color: var(--wa-3); }
+.cert h2 { margin: 2px 0 6px; font-size: 14px; line-height: 1.35; }
+.cert-lede { margin: 0 0 9px; opacity: .78; font-style: italic; }
+.cert dl { margin: 0; display: grid; grid-template-columns: 66px 1fr; gap: 3px 8px; }
+.cert dt { font-size: 11px; font-weight: 800; color: var(--wa-3); }
+.cert dd { margin: 0; }
+.cert a { color: var(--rose); font-weight: 700; }
+.cert code { font-size: 11px; background: rgba(85, 159, 210, .14); padding: 0 3px; border-radius: 2px; }
+.cert-seal {
+  display: flex; align-items: baseline; gap: 8px; margin: 10px 0 0; padding-top: 7px;
+  border-top: 1px dashed var(--rose); color: var(--rose); font-weight: 800; font-size: 11px;
+}
+.cert-seal i { margin-left: auto; font-style: normal; opacity: .7; }
 .nojs { position: fixed; inset: 0; display: grid; place-content: center; z-index: 90; background: var(--paper); margin: 0; }
 
 /* ── 窄屏 ─────────────────────────────────────────────── */
 
 @media (max-width: 720px) {
-  :root { --whale-w: min(58vw, 190px); --ui-h: 128px; --cue-lift: 70px; }
+  :root { --whale-w: min(58vw, 190px); --ui-h: 128px; }
+  /* 控件占掉的那一条不是海：海停在它们上面，海底线、航道、她才不会再压在输入框上 */
+  .stage { bottom: calc(var(--ui-h) + var(--dock-h)); }
   .head { padding-top: 7px; gap: 4px 8px; }
   .head h1 { font-size: 15px; }
   .head .meta { font-size: 11px; flex-basis: 100%; }
-  .cue { max-width: 78vw; }
-  .demo { max-width: calc(100vw - 134px); }
-  .demo .note { display: none; }
-  .send { align-items: stretch; }
-  .f-nick, .f-style { flex: 1 1 auto; }
+  .medal span { display: none; }
+  .cert { right: 8px; left: 8px; width: auto; bottom: calc(var(--ui-h) + 42px); max-height: 58vh; }
+  .dock { right: 8px; }
+  .demo { padding-right: 132px; }   /* 右边那一块留给 暂停/遥/奖 三个圆钮 */
+  .demo .tag, .demo .sep, .demo .note { display: none; }
+  .send { align-items: flex-end; gap: 6px 8px; }
+  .send label { gap: 2px; font-size: 10px; }
+  /* 内容独占一行，昵称/风格/按钮挤第二行：三行折成两行，海能多拿六十来像素 */
+  .f-text { order: -1; flex: 1 1 100%; }
+  .f-nick { flex: 1 1 84px; }
+  .f-style { flex: 1 1 96px; }
   .f-nick input { width: 100%; }
-  .f-text { flex: 1 1 100%; }
+  .send input, .send select { padding: 7px 9px; }
+  .send .go { align-self: flex-end; }
   .say { max-width: 62vw; font-size: 12px; }
 }
 
@@ -345,8 +424,11 @@ body {
 @media (forced-colors: active) {
   .dm, .dm[data-dm-style="plain"], .dm[data-dm-style="torn"] { border: 1px solid CanvasText; background: Canvas; forced-color-adjust: none; }
   .dm[data-dm-style="spark"] { border-width: 2px; }
+  /* 礼物是画出来的形状，高对比度下保留原色，只加一圈描边 */
+  .dm--gift, .dm--gift[data-dm-style] { border: 0; background: none; forced-color-adjust: none; }
+  .gift { background: Canvas; color: CanvasText; border-color: CanvasText; }
   .sea-sky, .sea-water, .sea-bed, .sea-water::after { background: Canvas; }
   .sea-surface i { background: none; border-top: 2px solid CanvasText; }
   .p-body, .p-belly { stroke: CanvasText; }
-  .say, .card, .panel, .head .kicker, .badge { forced-color-adjust: none; }
+  .say, .card, .panel, .head .kicker, .badge, .medal, .cert { forced-color-adjust: none; }
 }
